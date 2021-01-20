@@ -22,7 +22,7 @@ public class CheckerBoard {
 	/** The ID of an empty checker board tile. */
 	public static final byte EMPTY = 0;
 
-	/** The ID of a white checker in the checker board. */
+	/** The ID of a black checker in the checker board. */
 	public static final byte BLACK_CHECKER = 4 * 1 + 2 * 1 + 1 * 0;
 	
 	/** The ID of a white checker in the checker board. */

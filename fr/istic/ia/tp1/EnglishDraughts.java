@@ -13,37 +13,38 @@ import fr.istic.ia.tp1.Game.PlayerId;
 
 /**
  * Implementation of the English Draughts game.
+ * 
  * @author vdrevell
  *
  */
 public class EnglishDraughts extends Game {
-	/** 
+	/**
 	 * The checker board
 	 */
 	CheckerBoard board;
-	
-	/** 
-	 * The {@link PlayerId} of the current player
-	 * {@link PlayerId#ONE} corresponds to the whites
-	 * {@link PlayerId#TWO} corresponds to the blacks
+
+	/**
+	 * The {@link PlayerId} of the current player {@link PlayerId#ONE} corresponds
+	 * to the whites {@link PlayerId#TWO} corresponds to the blacks
 	 */
 	PlayerId playerId;
-	
+
 	/**
 	 * The current game turn (incremented each time the whites play)
 	 */
 	int nbTurn;
-	
+
 	/**
 	 * The number of consecutive moves played only with kings and without capture
 	 * (used to decide equality)
 	 */
 	int nbKingMovesWithoutCapture;
-	
+
 	/**
-	 * Class representing a move in the English draughts game
-	 * A move is an ArrayList of Integers, corresponding to the successive tile numbers (Manouri notation)
+	 * Class representing a move in the English draughts game A move is an ArrayList
+	 * of Integers, corresponding to the successive tile numbers (Manouri notation)
 	 * toString is overrided to provide Manouri notation output.
+	 * 
 	 * @author vdrevell
 	 *
 	 */
@@ -59,11 +60,10 @@ public class EnglishDraughts extends Game {
 			sb.append(from);
 			while (it.hasNext()) {
 				Integer to = it.next();
-				if (board.neighborDownLeft(from)==to || board.neighborUpLeft(from)==to
-						|| board.neighborDownRight(from)==to || board.neighborUpRight(from)==to) {
+				if (board.neighborDownLeft(from) == to || board.neighborUpLeft(from) == to
+						|| board.neighborDownRight(from) == to || board.neighborUpRight(from) == to) {
 					sb.append('-');
-				}
-				else {
+				} else {
 					sb.append('x');
 				}
 				sb.append(to);
@@ -72,17 +72,20 @@ public class EnglishDraughts extends Game {
 			return sb.toString();
 		}
 	}
-	
+
 	/**
 	 * The default constructor: initializes a game on the standard 8x8 board.
 	 */
 	public EnglishDraughts() {
 		this(8);
 	}
-	
+
 	/**
-	 * Constructor with custom boardSize (to play on a boardSize x boardSize checkerBoard).
-	 * @param boardSize See {@link CheckerBoard#CheckerBoard(int)} for valid board sizes. 
+	 * Constructor with custom boardSize (to play on a boardSize x boardSize
+	 * checkerBoard).
+	 * 
+	 * @param boardSize See {@link CheckerBoard#CheckerBoard(int)} for valid board
+	 *                  sizes.
 	 */
 	public EnglishDraughts(int boardSize) {
 		this.board = new CheckerBoard(boardSize);
@@ -90,9 +93,10 @@ public class EnglishDraughts extends Game {
 		this.nbTurn = 1;
 		this.nbKingMovesWithoutCapture = 0;
 	}
-	
+
 	/**
 	 * Copy constructor
+	 * 
 	 * @param d The game to copy
 	 */
 	EnglishDraughts(EnglishDraughts d) {
@@ -101,103 +105,166 @@ public class EnglishDraughts extends Game {
 		this.nbTurn = d.nbTurn;
 		this.nbKingMovesWithoutCapture = d.nbKingMovesWithoutCapture;
 	}
-	
+
 	@Override
 	public EnglishDraughts clone() {
 		return new EnglishDraughts(this);
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(nbTurn);
 		sb.append(". ");
-		sb.append(this.playerId==PlayerId.ONE?"W":"B");
+		sb.append(this.playerId == PlayerId.ONE ? "W" : "B");
 		sb.append(":");
 		sb.append(board.toString());
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String playerName(PlayerId playerId) {
 		switch (playerId) {
-		case ONE:
-			return "Player with the whites";
-		case TWO:
-			return "Player with the blacks";
-		case NONE:
-		default:
-			return "Nobody";
+			case ONE:
+				return "Player with the whites";
+			case TWO:
+				return "Player with the blacks";
+			case NONE:
+			default:
+				return "Nobody";
 		}
 	}
-	
+
 	@Override
 	public String view() {
 		return board.boardView() + "Turn #" + nbTurn + ". " + playerName(playerId) + " plays.\n";
 	}
-	
+
 	/**
 	 * Check if a tile is empty
+	 * 
 	 * @param square Tile number
 	 * @return
 	 */
 	boolean isEmpty(int square) {
-		//
-		// TODO isEmpty
-		//
+		return board.isEmpty(square);
 	}
-	
-	/** 
+
+	/**
 	 * Check if a tile is owned by adversary
+	 * 
 	 * @param square Tile number
 	 * @return
 	 */
 	boolean isAdversary(int square) {
-		//
-		// TODO isAdversary
-		//
+		switch (playerId) {
+			case ONE:
+				return board.isBlack(square);
+			case TWO:
+				return board.isWhite(square);
+			default:
+				return false;
+		}
 	}
-	
-	/** 
+
+	/**
 	 * Check if a tile is owned by the current player
+	 * 
 	 * @param square Tile number
 	 * @return
 	 */
 	boolean isMine(int square) {
-		//
-		// TODO isMine
-		//
+		switch (playerId) {
+			case ONE:
+				return board.isWhite(square);
+			case TWO:
+				return board.isBlack(square);
+			default:
+				return false;
+		}
 	}
-	
-	/** 
+
+	/**
 	 * Retrieve the list of positions of the pawns owned by the current player
+	 * 
 	 * @return The list of current player pawn positions
 	 */
 	ArrayList<Integer> myPawns() {
-		//
-		// TODO myPawns
-		//
+		ArrayList<Integer> res = new ArrayList<Integer>();
+		for (int i = 1; i <= board.nbPlayableTiles(); ++i) {
+			if (isMine(i)) {
+				res.add(i);
+			}
+		}
+		return res;
 	}
-	
-	
+
 	/**
-	 * Generate the list of possible moves
-	 * - first check moves with captures
-	 * - if no capture possible, return displacement moves
+	 * Generate the list of possible moves - first check moves with captures - if no
+	 * capture possible, return displacement moves
 	 */
 	@Override
 	public List<Move> possibleMoves() {
+		ArrayList<Move> moves = new ArrayList<Move>();
+		ArrayList<Integer> res = myPawns();
+		boolean whoIam;
+		if (playerId == PlayerId.ONE) {
+			// Blanc
+			whoIam = true;
+		} else {
+			// Noir
+			whoIam = false;
+		}
 		//
 		// TODO generate the list of possible moves
 		//
-		// Advice: 
+		// Advice:
 		// create two auxiliary functions :
 		// - one for jump moves from a given position, with capture (and multi-capture).
-		//    Use recursive calls to explore all multiple capture possibilities
-		// - one function that returns the displacement moves from a given position (without capture)
+		// Use recursive calls to explore all multiple capture possibilities
+		// - one function that returns the displacement moves from a given position
+		// (without capture)
 		//
-		ArrayList<Move> moves = new ArrayList<Move>();
+
 		return moves;
+	}
+
+	public ArrayList<Move> deplacement(ArrayList<Integer> pawn,boolean player){
+		ArrayList<Move> res = new ArrayList<>();
+		if(player){ //Joueur blanc
+			for(int i : pawn){
+				if(board.isEmpty(board.neighborUpLeft(i))){
+					ArrayList<Integer> moveL = new ArrayList<>();
+					moveL.add(board.neighborUpLeft(i));
+					res.add((Move)moveL);
+				}
+				if(board.isEmpty(board.neighborUpRight(i))){
+					ArrayList<Integer> moveR = new ArrayList<>();
+					moveR.add(i);moveR.add(board.neighborUpRight(i));
+					res.add((Move)moveR);
+				}
+			}
+		}else{ 		//Joueur Noir		
+			for(int i : pawn){
+				if(board.isEmpty(board.neighborDownLeft(i))){
+					ArrayList<Integer> moveL = new ArrayList<>();
+					moveL.add(board.neighborDownLeft(i));
+					res.add((Move)moveL);
+				}
+				if(board.isEmpty(board.neighborDownRight(i))){
+					ArrayList<Integer> moveR = new ArrayList<>();
+					moveR.add(i);moveR.add(board.neighborDownRight(i));
+					res.add((Move)moveR);
+				}
+			}
+		} 
+		// TODO REINE 
+		return res;
+		}
+		
+
+	public ArrayList<Move> DeplAvecCapture(ArrayList<Integer> pawnList, boolean player) {
+		return null;
 	}
 
 	@Override
@@ -210,20 +277,19 @@ public class EnglishDraughts extends Game {
 			return;
 		// Cast and apply the move
 		DraughtsMove move = (DraughtsMove) aMove;
-		
-		
+
 		//
 		// TODO implement play
 		//
-		
+
 		// Move pawn and capture opponents
-		
+
 		// Promote to king if the pawn ends on the opposite of the board
-		
+
 		// Next player
-		
+
 		// Update nbTurn
-		
+
 		// Keep track of successive moves with kings wthout capture
 
 	}
@@ -234,22 +300,21 @@ public class EnglishDraughts extends Game {
 	}
 
 	/**
-	 * Get the winner (or null if the game is still going)
-	 * Victory conditions are :
-	 * - adversary with no more pawns or no move possibilities
-	 * Null game condition (return PlayerId.NONE) is
-	 * - more than 25 successive moves of only kings and without any capture
+	 * Get the winner (or null if the game is still going) Victory conditions are :
+	 * - adversary with no more pawns or no move possibilities Null game condition
+	 * (return PlayerId.NONE) is - more than 25 successive moves of only kings and
+	 * without any capture
 	 */
 	@Override
 	public PlayerId winner() {
 		//
 		// TODO implement winner
 		//
-		
+
 		// return the winner ID if possible
-		
+
 		// return PlayerId.NONE if the game is null
-		
+
 		// Return null is the game has not ended yet
 		return null;
 	}
