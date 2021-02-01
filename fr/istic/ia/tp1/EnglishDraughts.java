@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import javax.print.attribute.standard.Destination;
+
 import fr.istic.ia.tp1.Game.PlayerId;
 
 /**
  * Implementation of the English Draughts game.
  * 
- * @author vdrevell
+ * @author Le Dourner/Guerin
  *
  */
 public class EnglishDraughts extends Game {
@@ -125,13 +127,13 @@ public class EnglishDraughts extends Game {
 	@Override
 	public String playerName(PlayerId playerId) {
 		switch (playerId) {
-			case ONE:
-				return "Player with the whites";
-			case TWO:
-				return "Player with the blacks";
-			case NONE:
-			default:
-				return "Nobody";
+		case ONE:
+			return "Player with the whites";
+		case TWO:
+			return "Player with the blacks";
+		case NONE:
+		default:
+			return "Nobody";
 		}
 	}
 
@@ -158,12 +160,12 @@ public class EnglishDraughts extends Game {
 	 */
 	boolean isAdversary(int square) {
 		switch (playerId) {
-			case ONE:
-				return board.isBlack(square);
-			case TWO:
-				return board.isWhite(square);
-			default:
-				return false;
+		case ONE:
+			return board.isBlack(square);
+		case TWO:
+			return board.isWhite(square);
+		default:
+			return false;
 		}
 	}
 
@@ -175,12 +177,12 @@ public class EnglishDraughts extends Game {
 	 */
 	boolean isMine(int square) {
 		switch (playerId) {
-			case ONE:
-				return board.isWhite(square);
-			case TWO:
-				return board.isBlack(square);
-			default:
-				return false;
+		case ONE:
+			return board.isWhite(square);
+		case TWO:
+			return board.isBlack(square);
+		default:
+			return false;
 		}
 	}
 
@@ -191,7 +193,7 @@ public class EnglishDraughts extends Game {
 	 */
 	ArrayList<Integer> myPawns() {
 		ArrayList<Integer> res = new ArrayList<Integer>();
-		for (int i = 1; i <= board.nbPlayableTiles(); ++i) {
+		for (int i = 1; i < board.nbPlayableTiles(); ++i) {
 			if (isMine(i)) {
 				res.add(i);
 			}
@@ -205,66 +207,256 @@ public class EnglishDraughts extends Game {
 	 */
 	@Override
 	public List<Move> possibleMoves() {
-		ArrayList<Move> moves = new ArrayList<Move>();
-		ArrayList<Integer> res = myPawns();
-		boolean whoIam;
-		if (playerId == PlayerId.ONE) {
-			// Blanc
-			whoIam = true;
-		} else {
-			// Noir
-			whoIam = false;
+		ArrayList<Move> moves = new ArrayList<>();
+		ArrayList<Integer> pawns = myPawns();
+		List<Integer> historique = new ArrayList<>();
+		List<DraughtsMove> prisePossible = new ArrayList<>();
+		List<DraughtsMove> deplPossible = new ArrayList<>();
+		boolean capture = false;
+		boolean king = false;
+		for(Integer i : pawns) {
+			king = board.isKing(i);
+			historique.clear();
+			prisePossible.addAll(prisesPossibles(i, historique, king));
+			if (!prisePossible.isEmpty()) {
+				capture = true;
+			}
 		}
-		//
-		// TODO generate the list of possible moves
-		//
-		// Advice:
-		// create two auxiliary functions :
-		// - one for jump moves from a given position, with capture (and multi-capture).
-		// Use recursive calls to explore all multiple capture possibilities
-		// - one function that returns the displacement moves from a given position
-		// (without capture)
-		//
+		if(!capture){
+			for(Integer i : pawns){
+				deplPossible.addAll(DeplacementSimplesPossibles2(i));
+			}
+			moves.addAll(deplPossible);
+		}else{
+			moves.addAll(prisePossible);
+		}
 
 		return moves;
 	}
-
-	public ArrayList<Move> deplacement(ArrayList<Integer> pawn,boolean player){
-		ArrayList<Move> res = new ArrayList<>();
-		if(player){ //Joueur blanc
-			for(int i : pawn){
-				if(board.isEmpty(board.neighborUpLeft(i))){
-					ArrayList<Integer> moveL = new ArrayList<>();
-					moveL.add(board.neighborUpLeft(i));
-					res.add((Move)moveL);
-				}
-				if(board.isEmpty(board.neighborUpRight(i))){
-					ArrayList<Integer> moveR = new ArrayList<>();
-					moveR.add(i);moveR.add(board.neighborUpRight(i));
-					res.add((Move)moveR);
-				}
-			}
-		}else{ 		//Joueur Noir		
-			for(int i : pawn){
-				if(board.isEmpty(board.neighborDownLeft(i))){
-					ArrayList<Integer> moveL = new ArrayList<>();
-					moveL.add(board.neighborDownLeft(i));
-					res.add((Move)moveL);
-				}
-				if(board.isEmpty(board.neighborDownRight(i))){
-					ArrayList<Integer> moveR = new ArrayList<>();
-					moveR.add(i);moveR.add(board.neighborDownRight(i));
-					res.add((Move)moveR);
-				}
-			}
-		} 
-		// TODO REINE 
-		return res;
-		}
+	//
+	// TODO generate the list of possible moves
+	//
+	// Advice:
+	// create two auxiliary functions :
+	// - one for jump moves from a given position, with capture (and multi-capture).
+	// Use recursive calls to explore all multiple capture possibilities
+	// - one function that returns the displacement moves from a given position
+	// (without capture)
+	//
+	/**
+	 * Enregistre les differents deplacements simples selon l'emplacement d'un pion
+	 * @param pawn emplacement du pion
+	 * @return list des deplacements possibles
+	 */
+	public List<DraughtsMove> DeplacementSimplesPossibles2(int pawn){
+		ArrayList<DraughtsMove> destPossibles = new ArrayList<>();
 		
+		if(board.isKing(pawn)){
+			checkUpRightDepl(pawn,destPossibles);
+			checkUpLeftDepl(pawn,destPossibles);
+			checkDownRightDepl(pawn,destPossibles);
+			checkDownLeftDepl(pawn,destPossibles);
+			
+		}else if(board.isBlack(pawn)){
+			checkDownRightDepl(pawn,destPossibles);
+			checkDownLeftDepl(pawn,destPossibles);
+		}else{
+			checkUpRightDepl(pawn,destPossibles);
+			checkUpLeftDepl(pawn,destPossibles);
+		}		
+		return destPossibles;
+	}
+	/**
+	 * Regarde si case Haute/Droite est vide et non au bord, si oui on ajoute le move a destPossibles
+	 * @param pawn	emplacement du pion
+	 * @param destPossibles list des deplacements disponibles a mettre a jour
+	 */
+	public void checkUpRightDepl(int pawn,List<DraughtsMove> destPossibles) {
+		int dest = board.neighborUpRight(pawn);
+		if(dest>0){
+			boolean destB = board.isEmpty(dest);
+			if(destB) {
+				DraughtsMove temp = new DraughtsMove();
+				temp.add(pawn);
+				temp.add(dest);
+				destPossibles.add(temp);
+			}
+		}
+	}
+	/**
+	 * Regarde si case Haute/Gauche est vide et non au bord, si oui on ajoute le move a destPossibles
+	 * @param pawn	emplacement du pion
+	 * @param destPossibles list des deplacements disponibles a mettre a jour
+	 */
+	public void checkUpLeftDepl(int pawn,List<DraughtsMove> destPossibles) {
+		int dest = board.neighborUpLeft(pawn);
+		if(dest>0){
+			boolean destB = board.isEmpty(dest);
+			if(destB) {
+				DraughtsMove temp = new DraughtsMove();
+				temp.add(pawn);
+				temp.add(dest);
+				destPossibles.add(temp);
+			}
+		}
 
-	public ArrayList<Move> DeplAvecCapture(ArrayList<Integer> pawnList, boolean player) {
-		return null;
+	}
+	/**
+	 * Regarde si case Bas/Droite est vide et non au bord, si oui on ajoute le move a destPossibles
+	 * @param pawn	emplacement du pion
+	 * @param destPossibles list des deplacements disponibles a mettre a jour
+	 */
+	public void checkDownRightDepl(int pawn,List<DraughtsMove> destPossibles) {
+		int dest = board.neighborDownRight(pawn);
+		if(dest>0){
+			boolean destB = board.isEmpty(dest);
+			if(destB) {
+				DraughtsMove temp = new DraughtsMove();
+				temp.add(pawn);
+				temp.add(dest);
+				destPossibles.add(temp);
+			}
+		}
+	}
+	/**
+	 * Regarde si case Bas/Gauche est vide et non au bord, si oui on ajoute le move a destPossibles
+	 * @param pawn	emplacement du pion
+	 * @param destPossibles list des deplacements disponibles a mettre a jour
+	 */
+	public void checkDownLeftDepl(int pawn,List<DraughtsMove> destPossibles) {
+		int dest = board.neighborDownLeft(pawn);
+		if(dest>0){
+			boolean destB = board.isEmpty(dest);
+			if(destB) {
+				DraughtsMove temp = new DraughtsMove();
+				temp.add(pawn);
+				temp.add(dest);
+				destPossibles.add(temp);
+			}
+		}
+	}
+	/**
+	 * Regarde si une capture depuis un pion est possible et n'est pas deja present dans historique
+	 * @param pawn emplacement du pion
+	 * @param historique case precedente du move
+	 * @return list des emplacements apres capture possibles
+	 */
+	public List<Integer> DeplacementAvecCapturePossibles(int pawn,List<Integer> historique,boolean king){
+		int upRight = board.neighborUpRight(pawn);
+		int upLeft = board.neighborUpLeft(pawn);
+		int downRight = board.neighborDownRight(pawn);
+		int downLeft = board.neighborDownLeft(pawn);
+		List<Integer> emplCapturePossibles = new ArrayList<>();
+		if(king) {
+			//Si Reine, on regarde dans toutes les diagonales
+			checkUpRightCapt(upRight,emplCapturePossibles);
+			checkUpLeftCapt(upLeft,emplCapturePossibles);
+			checkDownRightCapt(downRight,emplCapturePossibles);
+			checkDownLeftCapt(downLeft,emplCapturePossibles);
+		}else if(board.isBlack(pawn)) {
+			//Si Noir, on regarde diagonales basses
+			checkDownRightCapt(downRight,emplCapturePossibles);
+			checkDownLeftCapt(downLeft,emplCapturePossibles);
+		}else {
+			//Si Blanc, on regarde diagonales Hautes
+			checkUpRightCapt(upRight,emplCapturePossibles);
+			checkUpLeftCapt(upLeft,emplCapturePossibles);
+		}
+		SuppDoublon(historique,emplCapturePossibles);
+		return emplCapturePossibles;
+	}
+	/**
+	 * Regarde si une capture est possible vers Haut/Droite depuis un pion et met a jout res
+	 * @param upRight emplacement du pion
+	 * @param emplCapturePossibles
+	 */
+	public void checkUpRightCapt(int upRight,List<Integer> emplCapturePossibles) {
+
+		if(upRight > 0) {
+			if (isAdversary(upRight) && !board.isEmpty(upRight) && board.neighborUpRight(upRight)>0&&board.isEmpty(board.neighborUpRight(upRight))) {
+				emplCapturePossibles.add(board.neighborUpRight(upRight));
+			}
+		}
+	}
+	
+	/**
+	 * Regarde si une capture est possible vers Haut/Gauche depuis un pion et met a jout res
+	 * @param upLeft emplacement du pion
+	 * @param emplCapturePossibles
+	 */
+	public void checkUpLeftCapt(int upLeft,List<Integer> emplCapturePossibles) {
+		if(upLeft > 0){
+			if(isAdversary(upLeft) && !board.isEmpty(upLeft) && board.neighborUpLeft(upLeft) > 0 && board.isEmpty(board.neighborUpLeft(upLeft))){
+				emplCapturePossibles.add(board.neighborUpLeft(upLeft));
+			}
+		}
+	}
+	
+	/**
+	 * Regarde si une capture est possible vers Bas/Droite depuis un pion et met a jout res
+	 * @param downRight emplacement du pion
+	 * @param emplCapturePossibles
+	 */
+	public void checkDownRightCapt(int downRight,List<Integer> emplCapturePossibles) {
+		if(downRight > 0) {
+			if (isAdversary(downRight) &&!board.isEmpty(downRight) && board.neighborDownRight(downRight)>0 && board.isEmpty(board.neighborDownRight(downRight))) {
+				emplCapturePossibles.add(board.neighborDownRight(downRight));
+			}
+		}
+	}
+	
+	/**
+	 * Regarde si une capture est possible vers Bas/Droite depuis un pion et met a jout res
+	 * @param downLeft emplacement du pion
+	 * @param emplCapturePossibles
+	 */
+	public void checkDownLeftCapt(int downLeft,List<Integer> emplCapturePossibles) {
+		if(downLeft > 0) {
+			if (isAdversary(downLeft) && !board.isEmpty(downLeft) && board.neighborDownLeft(downLeft)>0&& board.isEmpty(board.neighborDownLeft(downLeft))) {
+				emplCapturePossibles.add(board.neighborDownLeft(downLeft));
+			}
+		}
+	}
+	/**
+	 * Supprime dans resultat les elements deja present dans historique
+	 * @param historique list integer
+	 * @param resultat list integer
+	 * @return list integer resultat sans les elements de historique 
+	 */
+	public List<Integer> SuppDoublon (List<Integer> historique, List<Integer> resultat){
+		for(Integer i : historique) {
+			if(resultat.contains(i)) {
+				resultat.remove(i);
+			}
+		}
+		return resultat;
+	}
+	
+	/**
+	 * Ajoute de maniere recursive les prises possibles depuis un pion
+	 * @param pawn emplacement du pion
+	 * @param historique list Integer, historique des deplacement du pion
+	 * @return list DraughtMove des prises possibles
+	 */
+	public List<DraughtsMove> prisesPossibles(int pawn,List<Integer> historique,boolean king){
+		ArrayList<DraughtsMove> moves = new ArrayList<>();
+		List<Integer> destPossibles = DeplacementAvecCapturePossibles(pawn,historique,king);
+		historique.add(pawn);
+		for(int dest : destPossibles){
+			List<DraughtsMove> movesPriseDest = prisesPossibles(dest,historique,king);
+			if(movesPriseDest.isEmpty()){
+				DraughtsMove temp = new DraughtsMove();
+				temp.add(pawn);temp.add(dest);
+				moves.add(temp);
+			}else{
+				for(DraughtsMove moveDest : movesPriseDest){
+					DraughtsMove concat = new DraughtsMove();
+					concat.add(pawn);concat.addAll(moveDest);
+					moves.add(concat);
+				}
+			}
+		}
+		return moves;
 	}
 
 	@Override
@@ -276,22 +468,43 @@ public class EnglishDraughts extends Game {
 		if (!(aMove instanceof DraughtsMove))
 			return;
 		// Cast and apply the move
+		boolean capture = false;
 		DraughtsMove move = (DraughtsMove) aMove;
-
-		//
-		// TODO implement play
-		//
-
+		Boolean King = board.isKing(move.get(0));
+		
 		// Move pawn and capture opponents
+		for(int i =0;i<move.size()-1;i++){
+			board.movePawn(move.get(i), move.get(i+1));
+			int bitwin = board.squareBetween(move.get(i), move.get(i+1));
+			if(bitwin > 0 && !board.isEmpty(bitwin)){
+				board.removePawn(bitwin);
+				capture = true;
+			}
+			// Keep track of successive moves with kings wthout capture
+			if(!capture && King ){
+				nbKingMovesWithoutCapture++;
+			}
+			
+		}
 
 		// Promote to king if the pawn ends on the opposite of the board
-
+		int lastPos = move.get(move.size()-1);
+		if(playerId == PlayerId.ONE && board.inTopRow(lastPos)){
+			board.crownPawn(lastPos);
+		}
+		if(playerId == PlayerId.TWO && board.inBottomRow(lastPos)){
+			board.crownPawn(lastPos);
+		}
+		
 		// Next player
-
+		if(playerId == PlayerId.ONE){
+			playerId = PlayerId.TWO;
+		}else{
+			playerId = PlayerId.ONE;
+		}
+		
 		// Update nbTurn
-
-		// Keep track of successive moves with kings wthout capture
-
+		nbTurn++;
 	}
 
 	@Override
@@ -307,15 +520,18 @@ public class EnglishDraughts extends Game {
 	 */
 	@Override
 	public PlayerId winner() {
-		//
-		// TODO implement winner
-		//
 
 		// return the winner ID if possible
-
-		// return PlayerId.NONE if the game is null
-
-		// Return null is the game has not ended yet
-		return null;
+		if(board.getBlackPawns().isEmpty()){
+			return PlayerId.ONE;
+		}else if(board.getWhitePawns().isEmpty()){
+			return PlayerId.TWO;
+		}else if(nbKingMovesWithoutCapture >= 25){
+			// return PlayerId.NONE if the game is null
+			return PlayerId.NONE;
+		}else{
+			// Return null is the game has not ended yet
+			return null;
+		}		
 	}
 }

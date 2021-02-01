@@ -1,16 +1,18 @@
 package fr.istic.ia.tp1;
 
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
 import java.util.HashSet;
 
 
 
 import fr.istic.ia.tp1.Game.PlayerId;
-import org.junit.Test;
+
 
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestEnglishDraughts {
 	static void clearBoard(CheckerBoard board) {
