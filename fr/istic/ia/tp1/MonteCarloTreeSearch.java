@@ -53,7 +53,7 @@ public class MonteCarloTreeSearch {
 		double uct() {
 			double max = 0.0;
 			double temp = 0.0;
-			
+
 			for(EvalNode c : children){
 				temp = (c.w/c.n)+Math.sqrt(2.0)*Math.sqrt(Math.log(this.n)/c.n);
 				if(temp>max){
@@ -61,6 +61,25 @@ public class MonteCarloTreeSearch {
 				}
 			}
 			return max;
+
+		}
+		/**
+		 * Compute the Upper Confidence Bound for Trees (UCT) value for the node.
+		 * @return UCT EvalNode for the node
+		 */
+		EvalNode uctChild() {
+			EvalNode choix = null;
+			double max = 0.0;
+			double temp = 0.0;
+
+			for(EvalNode c : children){
+				temp = (c.w/c.n)+Math.sqrt(2.0)*Math.sqrt(Math.log(this.n)/c.n);
+				if(temp>max){
+					max= temp;
+					choix = c;
+				}
+			}
+			return choix;
 
 		}
 
@@ -131,12 +150,12 @@ public class MonteCarloTreeSearch {
 		 */
 		public void update(PlayerId winner) {
 			switch(winner){
-				case ONE : win1+=1.0;
-				break;
-				case TWO : win2+=1.0;
-				break;
-				case NONE : win1+=0.5;win2+=0.5;
-				break;
+			case ONE : win1+=1.0;
+			break;
+			case TWO : win2+=1.0;
+			break;
+			case NONE : win1+=0.5;win2+=0.5;
+			break;
 			}
 		}
 
@@ -194,7 +213,7 @@ public class MonteCarloTreeSearch {
 		}
 		return game.winner();
 	}
-	
+
 
 	/**
 	 * Perform nbRuns rollouts from a game state, and returns the winning statistics for both players.
@@ -203,24 +222,17 @@ public class MonteCarloTreeSearch {
 	 * @return A RolloutResults object containing the number of wins for each player and the number of simulations
 	 */
 	static RolloutResults rollOut(final Game game, int nbRuns) {
-		
+
 		RolloutResults r = new RolloutResults();
 		while(nbRuns>0){
 			r.update(playRandomlyToEnd(game));
 			r.n++;
 		}
-		
-		while(nbRuns>0){
-			RolloutResults temp = new RolloutResults();
-			temp.update(playRandomlyToEnd(game));
-			r.add(temp);
-		}
 
 		//Partir du début, faire un run 
-		
+
 		// maj le nombre de victoire en fonction du winner
-		//venir au début et recommencer 
-		
+		//venir au début et recommencer	
 		return r;
 	}
 
@@ -257,18 +269,27 @@ public class MonteCarloTreeSearch {
 		//
 		// TODO implement MCTS evaluateTreeOnce
 		//
-
+		EvalNode node = root;
 		// List of visited nodes
-
+		List<EvalNode> noeudVisite = new ArrayList<>();
 		// Start from the root
-
+		noeudVisite.add(node);
 		// Selection (with UCT tree policy)
-
+		while(!node.children.isEmpty()) {
+			node = node.uctChild();
+			noeudVisite.add(node);
+		}
 		// Expand node
-
+		EvalNode newFils = new EvalNode(node.game);
+		node.children.add(newFils);
 		// Simulate from new node(s)
 
+		RolloutResults r = rollOut(newFils.game,10);
+
 		// Backpropagate results
+		for(EvalNode n : noeudVisite) {
+			node.updateStats(r);
+		}
 
 		// Return false if tree evaluation should continue
 		return false;
@@ -279,13 +300,20 @@ public class MonteCarloTreeSearch {
 	 * @return The best move to play from the current MCTS tree state.
 	 */
 	public Move getBestMove() {
-		// 
-		// TODO Implement MCTS getBestMove
-		//
-		return null;
+		double max = 0.0;
+		Move best = null;
+		if(!root.children.isEmpty()) {
+			Iterator<Move> itMove = root.game.possibleMoves().iterator();
+			for(EvalNode n : root.children){
+				Move move = itMove.next();
+				if(max < n.w) {
+					max = n.score();
+					best = move;
+				}
+			}
+		}
+		return best;
 	}
-
-
 	/**
 	 * Get a few stats about the MTS tree and the possible moves scores
 	 * @return A string containing MCTS stats
