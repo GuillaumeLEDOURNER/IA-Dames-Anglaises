@@ -34,13 +34,20 @@ public class MonteCarloTreeSearch {
 
 		/** The children of the node: the games states accessible by playing a move from this node state */
 		ArrayList<EvalNode> children;
-
+		Move m;
 		/** 
 		 * The only constructor of EvalNode.
 		 * @param game The game state corresponding to this node.
 		 */
 		EvalNode(Game game) {
 			this.game = game;
+			children = new ArrayList<EvalNode>();
+			w = 0.0;
+			n = 0;
+		}
+		EvalNode(Game game,Move m) {
+			this.game = game;
+			this.m = m;
 			children = new ArrayList<EvalNode>();
 			w = 0.0;
 			n = 0;
@@ -68,13 +75,13 @@ public class MonteCarloTreeSearch {
 		 * @return UCT EvalNode for the node
 		 */
 		EvalNode uctChild() {
-			EvalNode choix = null;
+			EvalNode choix = new EvalNode(game);
 			double max = 0.0;
-			double temp = 0.0;
+			double temp =-1.0;
 
 			for(EvalNode c : children){
 				temp = (c.w/c.n)+Math.sqrt(2.0)*Math.sqrt(Math.log(this.n)/c.n);
-				if(temp>max){
+				if(temp>=max){
 					max= temp;
 					choix = c;
 				}
@@ -149,6 +156,7 @@ public class MonteCarloTreeSearch {
 		 * @param winner
 		 */
 		public void update(PlayerId winner) {
+
 			switch(winner){
 			case ONE : win1+=1.0;
 			break;
@@ -208,7 +216,7 @@ public class MonteCarloTreeSearch {
 	 */
 	static PlayerId playRandomlyToEnd(Game game) {
 		PlayerRandom rd = new PlayerRandom();
-		while(game.player() == null) {
+		while(game.winner() == null) {
 			game.play(rd.play(game));
 		}
 		return game.winner();
@@ -227,6 +235,7 @@ public class MonteCarloTreeSearch {
 		while(nbRuns>0){
 			r.update(playRandomlyToEnd(game));
 			r.n++;
+			nbRuns--;
 		}
 
 		//Partir du début, faire un run 
@@ -244,15 +253,17 @@ public class MonteCarloTreeSearch {
 	public void evaluateTreeWithTimeLimit(int timeLimitMillis) {
 		// Record function entry time
 		long startTime = System.nanoTime();
-
+		int cpt = 0;
 		// Evaluate the tree until timeout
-		while (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) < timeLimitMillis) {
+		while (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) < timeLimitMillis || cpt == 0) {
+			cpt++;
 			// Perform one MCTS step
 			boolean canStop = evaluateTreeOnce();
 			// Stop evaluating the tree if there is nothing more to explore
 			if (canStop) {
 				break;
 			}
+
 		}
 
 		// Print some statistics
@@ -273,24 +284,33 @@ public class MonteCarloTreeSearch {
 		// List of visited nodes
 		List<EvalNode> noeudVisite = new ArrayList<>();
 		// Start from the root
+
 		noeudVisite.add(node);
 		// Selection (with UCT tree policy)
+		if(node == null) System.out.println("EZAKE?AZ NKJAZENJZA");
 		while(!node.children.isEmpty()) {
 			node = node.uctChild();
 			noeudVisite.add(node);
 		}
 		// Expand node
-		EvalNode newFils = new EvalNode(node.game);
+		
+		
+		List<Move> Poss = node.game.possibleMoves();
+		Random rd = new Random();
+		Move m = Poss.get(rd.nextInt(Poss.size()));
+		
+		
+		Game g = node.game.clone();
+		g.play(m);
+		EvalNode newFils = new EvalNode(g);
 		node.children.add(newFils);
+		
 		// Simulate from new node(s)
-
-		RolloutResults r = rollOut(newFils.game,10);
-
-		// Backpropagate results
+		RolloutResults r = rollOut(g,1);
+			// Backpropagate results
 		for(EvalNode n : noeudVisite) {
 			node.updateStats(r);
 		}
-
 		// Return false if tree evaluation should continue
 		return false;
 	}
@@ -300,15 +320,14 @@ public class MonteCarloTreeSearch {
 	 * @return The best move to play from the current MCTS tree state.
 	 */
 	public Move getBestMove() {
-		double max = 0.0;
+		double max = -1.0;
 		Move best = null;
 		if(!root.children.isEmpty()) {
-			Iterator<Move> itMove = root.game.possibleMoves().iterator();
 			for(EvalNode n : root.children){
-				Move move = itMove.next();
+				//Move move = itMove.next();
 				if(max < n.w) {
 					max = n.score();
-					best = move;
+					best = n.m;
 				}
 			}
 		}
