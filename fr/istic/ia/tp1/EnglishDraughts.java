@@ -30,7 +30,8 @@ public class EnglishDraughts extends Game {
 	 * to the whites {@link PlayerId#TWO} corresponds to the blacks
 	 */
 	PlayerId playerId;
-
+	boolean gameNullWhiteWin =false;
+	boolean gameNullBlackWin =false;
 	/**
 	 * The current game turn (incremented each time the whites play)
 	 */
@@ -193,7 +194,7 @@ public class EnglishDraughts extends Game {
 	 */
 	ArrayList<Integer> myPawns() {
 		ArrayList<Integer> res = new ArrayList<Integer>();
-		for (int i = 1; i < board.nbPlayableTiles(); ++i) {
+		for (int i = 1; i <= board.nbPlayableTiles(); ++i) {
 			if (isMine(i)) {
 				res.add(i);
 			}
@@ -461,6 +462,14 @@ public class EnglishDraughts extends Game {
 
 	@Override
 	public void play(Move aMove) {
+		if(aMove == null && playerId == PlayerId.ONE) {
+			gameNullBlackWin = true;
+			return;
+		}
+		if(aMove == null && playerId == PlayerId.TWO) {
+			gameNullWhiteWin = true;
+			return;
+		}
 		// Player should be valid
 		if (playerId == PlayerId.NONE)
 			return;
@@ -470,10 +479,11 @@ public class EnglishDraughts extends Game {
 		// Cast and apply the move
 		boolean capture = false;
 		DraughtsMove move = (DraughtsMove) aMove;
-		Boolean King = board.isKing(move.get(0));
+		boolean king = board.isKing(move.get(0));
 		
 		// Move pawn and capture opponents
 		for(int i =0;i<move.size()-1;i++){
+			
 			board.movePawn(move.get(i), move.get(i+1));
 			int bitwin = board.squareBetween(move.get(i), move.get(i+1));
 			if(bitwin > 0 && !board.isEmpty(bitwin)){
@@ -481,7 +491,7 @@ public class EnglishDraughts extends Game {
 				capture = true;
 			}
 			// Keep track of successive moves with kings wthout capture
-			if(!capture && King ){
+			if(!capture && king ){
 				nbKingMovesWithoutCapture++;
 			}
 			
@@ -520,11 +530,12 @@ public class EnglishDraughts extends Game {
 	 */
 	@Override
 	public PlayerId winner() {
-
+		// || (playerId == PlayerId.TWO && possibleMoves().isEmpty())
+		// || (playerId == PlayerId.ONE && possibleMoves().isEmpty())
 		// return the winner ID if possible
-		if(board.getBlackPawns().isEmpty()){
+		if(board.getBlackPawns().isEmpty() || gameNullWhiteWin){
 			return PlayerId.ONE;
-		}else if(board.getWhitePawns().isEmpty()){
+		}else if(board.getWhitePawns().isEmpty() || gameNullBlackWin ){
 			return PlayerId.TWO;
 		}else if(nbKingMovesWithoutCapture >= 25){
 			// return PlayerId.NONE if the game is null

@@ -216,10 +216,12 @@ public class MonteCarloTreeSearch {
 	 */
 	static PlayerId playRandomlyToEnd(Game game) {
 		PlayerRandom rd = new PlayerRandom();
-		while(game.winner() == null) {
-			game.play(rd.play(game));
+		EnglishDraughts gameCloned = (EnglishDraughts) game.clone();
+		while(gameCloned.winner() == null) {
+			//System.out.println(gameCloned.board.boardView());
+			gameCloned.play(rd.play(gameCloned));
 		}
-		return game.winner();
+		return gameCloned.winner();
 	}
 
 
@@ -253,10 +255,9 @@ public class MonteCarloTreeSearch {
 	public void evaluateTreeWithTimeLimit(int timeLimitMillis) {
 		// Record function entry time
 		long startTime = System.nanoTime();
-		int cpt = 0;
+		//int cpt = 0;
 		// Evaluate the tree until timeout
-		while (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) < timeLimitMillis || cpt == 0) {
-			cpt++;
+		while (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) < timeLimitMillis) {
 			// Perform one MCTS step
 			boolean canStop = evaluateTreeOnce();
 			// Stop evaluating the tree if there is nothing more to explore
@@ -287,7 +288,6 @@ public class MonteCarloTreeSearch {
 
 		noeudVisite.add(node);
 		// Selection (with UCT tree policy)
-		if(node == null) System.out.println("EZAKE?AZ NKJAZENJZA");
 		while(!node.children.isEmpty()) {
 			node = node.uctChild();
 			noeudVisite.add(node);
@@ -302,11 +302,12 @@ public class MonteCarloTreeSearch {
 		
 		Game g = node.game.clone();
 		g.play(m);
-		EvalNode newFils = new EvalNode(g);
+		EvalNode newFils = new EvalNode(g,m);
 		node.children.add(newFils);
 		
 		// Simulate from new node(s)
-		RolloutResults r = rollOut(g,1);
+		RolloutResults r = rollOut(g,5);
+		
 			// Backpropagate results
 		for(EvalNode n : noeudVisite) {
 			node.updateStats(r);
@@ -323,8 +324,9 @@ public class MonteCarloTreeSearch {
 		double max = -1.0;
 		Move best = null;
 		if(!root.children.isEmpty()) {
+			System.out.println("children size : "+root.children.size());
 			for(EvalNode n : root.children){
-				//Move move = itMove.next();
+				System.out.println(n.children.isEmpty());
 				if(max < n.w) {
 					max = n.score();
 					best = n.m;

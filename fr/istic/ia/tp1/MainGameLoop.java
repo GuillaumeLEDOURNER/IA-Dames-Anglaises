@@ -141,7 +141,6 @@ public class MainGameLoop {
 			default:
 				move = null;
 			}
-			
 			// Exit if something went wrong
 			if (move == null) {
 				System.out.println("Error, " + game.playerName(game.player())+  " cannot play. Abort.");
@@ -149,6 +148,7 @@ public class MainGameLoop {
 			}
 
 			// Display the chosen move
+			
 			System.out.println("> " + game.playerName(game.player()) + " played " + move);
 			System.out.println();
 			
