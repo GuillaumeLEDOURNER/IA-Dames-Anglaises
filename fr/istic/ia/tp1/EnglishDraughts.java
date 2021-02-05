@@ -1,15 +1,9 @@
 package fr.istic.ia.tp1;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
-import javax.print.attribute.standard.Destination;
 
 import fr.istic.ia.tp1.Game.PlayerId;
 
@@ -489,6 +483,9 @@ public class EnglishDraughts extends Game {
 			if(bitwin > 0 && !board.isEmpty(bitwin)){
 				board.removePawn(bitwin);
 				capture = true;
+			}
+			if(capture && king) {
+				nbKingMovesWithoutCapture = 0;
 			}
 			// Keep track of successive moves with kings wthout capture
 			if(!capture && king ){
