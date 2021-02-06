@@ -47,6 +47,11 @@ public class MonteCarloTreeSearch {
 			w = 0.0;
 			n = 0;
 		}
+		/**
+		 * Constructeur gardant le move qui a ete effectue (Servira pour les fils)
+		 * @param game The game state corresponding to this node.
+		 * @param m move effectue pour obtenir cet etat de parti
+		 */
 		EvalNode(Game game,Move m) {
 			this.game = game;
 			this.m = m;
@@ -74,7 +79,7 @@ public class MonteCarloTreeSearch {
 		}
 		/**
 		 * Compute the Upper Confidence Bound for Trees (UCT) value for the node.
-		 * @return UCT EvalNode for the node
+		 * @return null s'il reste des moves possibles sinon on cherche le meilleur fils
 		 */
 		EvalNode uctChild() {
 			EvalNode choix = new EvalNode(game);
@@ -91,9 +96,7 @@ public class MonteCarloTreeSearch {
 					}
 				}
 			}
-
 			return choix;
-
 		}
 
 		/**
@@ -101,8 +104,6 @@ public class MonteCarloTreeSearch {
 		 * @return Estimated probability of win for the node
 		 */
 		double score() {
-			/*if(n == 0) n = 1;
-			if(w == 1) w = 1;*/
 			return this.w/this.n;
 		}
 
@@ -247,11 +248,6 @@ public class MonteCarloTreeSearch {
 			r.n++;
 			nbRuns--;
 		}
-
-		//Partir du début, faire un run 
-
-		//maj le nombre de victoire en fonction du winner
-		//venir au début et recommencer	
 		return r;
 	}
 
@@ -273,7 +269,6 @@ public class MonteCarloTreeSearch {
 			}
 
 		}
-
 		// Print some statistics
 		System.out.println("Stopped search after " 
 				+ TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + " ms. "
@@ -308,7 +303,6 @@ public class MonteCarloTreeSearch {
 			}else {
 				return false;
 			}
-
 		}
 
 		List<Move> Poss = node.game.possibleMoves();
@@ -324,8 +318,6 @@ public class MonteCarloTreeSearch {
 		Game g = node.game.clone();
 		g.play(m);
 		temp = new EvalNode(g,m);	
-
-
 
 		// Simulate from new node(s)
 		node.children.add(temp);

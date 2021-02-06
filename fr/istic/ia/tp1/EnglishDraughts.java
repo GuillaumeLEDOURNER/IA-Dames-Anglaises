@@ -368,7 +368,7 @@ public class EnglishDraughts extends Game {
 	public void checkUpRightCapt(int upRight,List<Integer> emplCapturePossibles) {
 
 		if(upRight > 0) {
-			if (isAdversary(upRight) && !board.isEmpty(upRight) && board.neighborUpRight(upRight)>0&&board.isEmpty(board.neighborUpRight(upRight))) {
+			if(isAdversary(upRight) && !board.isEmpty(upRight) && board.neighborUpRight(upRight)>0&&board.isEmpty(board.neighborUpRight(upRight))) {
 				emplCapturePossibles.add(board.neighborUpRight(upRight));
 			}
 		}
@@ -394,7 +394,7 @@ public class EnglishDraughts extends Game {
 	 */
 	public void checkDownRightCapt(int downRight,List<Integer> emplCapturePossibles) {
 		if(downRight > 0) {
-			if (isAdversary(downRight) &&!board.isEmpty(downRight) && board.neighborDownRight(downRight)>0 && board.isEmpty(board.neighborDownRight(downRight))) {
+			if(isAdversary(downRight) &&!board.isEmpty(downRight) && board.neighborDownRight(downRight)>0 && board.isEmpty(board.neighborDownRight(downRight))) {
 				emplCapturePossibles.add(board.neighborDownRight(downRight));
 			}
 		}
@@ -407,7 +407,7 @@ public class EnglishDraughts extends Game {
 	 */
 	public void checkDownLeftCapt(int downLeft,List<Integer> emplCapturePossibles) {
 		if(downLeft > 0) {
-			if (isAdversary(downLeft) && !board.isEmpty(downLeft) && board.neighborDownLeft(downLeft)>0&& board.isEmpty(board.neighborDownLeft(downLeft))) {
+			if(isAdversary(downLeft) && !board.isEmpty(downLeft) && board.neighborDownLeft(downLeft)>0&& board.isEmpty(board.neighborDownLeft(downLeft))) {
 				emplCapturePossibles.add(board.neighborDownLeft(downLeft));
 			}
 		}
