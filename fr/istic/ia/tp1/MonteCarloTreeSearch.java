@@ -88,7 +88,6 @@ public class MonteCarloTreeSearch {
 					if(temp>=max){
 						max= temp;
 						choix = c;
-						//comparer avec le noeud vide aussi (
 					}
 				}
 			}
@@ -111,9 +110,9 @@ public class MonteCarloTreeSearch {
 		 * Update the stats (n and w) of the node with the provided rollout results
 		 * @param res
 		 */
-		void updateStats(RolloutResults res) {
+		void updateStats(RolloutResults res,PlayerId p) {
 			this.n = res.n + this.n;
-			this.w = res.nbWins(this.game.player());
+			this.w = this.w + res.nbWins(p);
 		}
 	}
 
@@ -251,7 +250,7 @@ public class MonteCarloTreeSearch {
 
 		//Partir du début, faire un run 
 
-		// maj le nombre de victoire en fonction du winner
+		//maj le nombre de victoire en fonction du winner
 		//venir au début et recommencer	
 		return r;
 	}
@@ -278,7 +277,7 @@ public class MonteCarloTreeSearch {
 		// Print some statistics
 		System.out.println("Stopped search after " 
 				+ TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + " ms. "
-				+ "Root stats is " + root.w + "/" + root.n + String.format(" (%.2f%% loss)", 100.0*root.w/root.n));
+				+ "Root stats is " + root.w + "/" + root.n + String.format(" (%.2f%% win)", 100.0*root.w/root.n));
 	}
 
 	/**
@@ -313,8 +312,12 @@ public class MonteCarloTreeSearch {
 		}
 
 		List<Move> Poss = node.game.possibleMoves();
+		//System.out.println("id" + node.game.player());
 		for(EvalNode e : node.children){
 			Poss.remove(e.m);
+		}
+		for(Move p : Poss) {
+			p.toString();
 		}
 		Random rd = new Random();
 		Move m = Poss.get(rd.nextInt(Poss.size()));			
@@ -326,11 +329,11 @@ public class MonteCarloTreeSearch {
 
 		// Simulate from new node(s)
 		node.children.add(temp);
-		RolloutResults r = rollOut(temp.game,2);
-		temp.updateStats(r);
+		noeudVisite.add(temp);
+		RolloutResults r = rollOut(temp.game,5);
 		// Backpropagate results
 		for(EvalNode n : noeudVisite) {
-			node.updateStats(r);
+			n.updateStats(r,node.game.player());
 		}
 		// Return false if tree evaluation should continue
 		return false;
@@ -342,28 +345,19 @@ public class MonteCarloTreeSearch {
 	 */
 	public Move getBestMove() {
 		double max = -1.0;
-		EvalNode node = root;
-		while(!node.children.isEmpty()) {	
-			System.out.println("size + " + node.children.size());
-			EvalNode temp = node;
-			for(EvalNode n : node.children){
-				
-				System.out.println("max = " + max);
-				System.out.println("score = " + n.score());
-				if(max < n.score()) {
-
-					max = n.score();
-					temp = n;
-				}
-			}
-			if(temp.equals(node)) {
-				break;
-			}else {
-				node = temp;
-				max = -1;
+		EvalNode res = null;
+		
+		for(EvalNode n : root.children) {
+			/*System.out.println(n.m);
+			System.out.println("score :" + n.score());
+			System.out.println("max :"+max);*/
+			if(max < n.score()) {
+				max = n.score();
+				res = n;
 			}
 		}
-		return node.m;
+		return res.m;
+	
 	}
 	/**
 	 * Get a few stats about the MTS tree and the possible moves scores
