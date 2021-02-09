@@ -37,7 +37,15 @@ Toutes ces fonctions réalisent des actions simples qui misent bout à bout perm
 * `utcChild()` méthode dans EvalNode permettant de demander directement au père qu'elle est son meilleur fils ou s'il reste des moves possibles non joués.
    
  
+## Revue de l'IA MCTS
 
+Nous avons effectué quelques parties Random vs MCTS1, Random vs MCTS10 et MCTS1 vs MCTS10 qui nous ont permit de réaliser les observations suivantes : 
+
+* Pour Random vs MCTS1, l'IA ne gagne pas forcément et ne permet pas de calculer avec beaucoup de certitudes le meilleur coup elle est globalement du même niveau que le joueur qui joue de façon aléatoire, on peut dire qu'elle gagne dans environ 65% des cas mais peut perdre sur des coups qui se révèlent mal aviser au fil de la partie car contrés par le coté aléatoire du second joueur.
+
+* Random vs MCTS10, l'IA gagne beaucoup plus facilement et réalise des coups judicieux qui lui permettent de contrer facilement le joueur qui joue de façon aléatoire. Elle gagne dans 85% des cas et peut perdre surtout à cause d'une exploration incomplète de l'arbre de MCTS.
+
+* Pour MCTS1 vs MCTS10, l'IA MCTS10 gagnes le plus souvent, ou on a des égalités si le MCTS1 réalise des coups judicieux qui sont facilement calculables et ne nécessite pas une exploration complète de l'arbre où il a sélectionné le bon noeud grâce au random.
 
 
 
