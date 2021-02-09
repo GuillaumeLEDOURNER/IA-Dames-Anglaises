@@ -1,3 +1,5 @@
+https://gitlab.istic.univ-rennes1.fr/18000736/dames_anglaises_optionia
+
 # Rapport TP IA : English Draughts
 
 par Le Dourner Guillaume - Guerin Alexys
