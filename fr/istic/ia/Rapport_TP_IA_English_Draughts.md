@@ -26,7 +26,7 @@ Ces fonctions vérifient qu'il s'agit d'une capture c'est à dire si la case vis
 Ensuite la fonction `DeplacementAvecCapturePossibles(pawn,historique,king);` et la fonction `prisesPossibles(int pawn,List<Integer> historique,boolean king);` réalise la pour la première la liste des destinations de capture et pour la seconde la liste des prises possibles. Elle s'appuie toutes deux sur un système d'historique qui permet d'éviter les sauts multiples au dessus du même pions et qui garde en mémoire les cases visitées, de plus les mouvement d'un roi étant plus complexes nous avons choisi d'ajouter à leurs paramètres un `booleen king` qui permet de choisir le comportement de capture à adopter rapidement.
 
 
-Toutes ces fonctions réalise des actions simples qui misent bout à bout permette le calcul complet des mouvements.
+Toutes ces fonctions réalisent des actions simples qui misent bout à bout permette le calcul complet des mouvements.
 
 
 
